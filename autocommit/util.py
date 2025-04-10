@@ -1,8 +1,8 @@
 from pathlib import Path
 import os
-from config import Config
 
-from logger import get_logger
+from autocommit.config import Config
+from autocommit.logger import get_logger
 
 config = Config.get_instance()
 logger = get_logger()

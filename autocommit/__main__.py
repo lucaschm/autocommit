@@ -8,11 +8,12 @@ from autocommit.logger import get_logger
 from autocommit.git import is_git_repo, try_pull
 
 def main():
-    logger.info("Starting autocommit...")
 
     logger = get_logger()
 
     config = Config.get_instance()
+    
+    logger.info("Starting autocommit...")
 
     if (not is_git_repo(config.repo_path)):
         logger.error(f"{config.repo_path} is not a git repository! \

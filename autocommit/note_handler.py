@@ -7,10 +7,10 @@ import time
 import subprocess # TODO: this can be removed when TODO 01 was solved
 
 # project imports
-from util import file_exists, ignore_path, is_attachment_file, is_main_file
-from logger import get_logger
-from config import Config
-from git import commit_and_push, delete_directory, git_rm
+from autocommit.util import file_exists, ignore_path, is_attachment_file, is_main_file
+from autocommit.logger import get_logger
+from autocommit.config import Config
+from autocommit.git import commit_and_push, delete_directory, git_rm
 
 logger = get_logger()
 config = Config.get_instance()

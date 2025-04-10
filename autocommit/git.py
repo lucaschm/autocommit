@@ -3,8 +3,8 @@ import subprocess
 import time
 
 # project imports
-from logger import get_logger
-from config import Config
+from autocommit.logger import get_logger
+from autocommit.config import Config
 
 logger = get_logger()
 config = Config.get_instance()

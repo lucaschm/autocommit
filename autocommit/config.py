@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 # project imports
-from logger import get_logger
+from autocommit.logger import get_logger
 
 logger = get_logger()
 
