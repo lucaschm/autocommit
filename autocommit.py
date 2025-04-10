@@ -5,14 +5,19 @@ from watchdog.observers import Observer
 from autocommit.config import Config
 from autocommit.note_handler import NoteHandler
 from autocommit.logger import get_logger
+from autocommit.git import is_git_repo
 
 def main():
 
     logger = get_logger()
 
-    logger.info("Starting autocommit...")
-
     config = Config.get_instance()
+
+    if (not is_git_repo(config.repo_path)):
+        logger.error(f"{config.repo_path} is not a git repository!")
+        return
+
+    logger.info("Starting autocommit...")
 
     event_handler = NoteHandler()
     observer = Observer()
