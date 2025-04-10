@@ -5,9 +5,10 @@ from watchdog.observers import Observer
 from autocommit.config import Config
 from autocommit.note_handler import NoteHandler
 from autocommit.logger import get_logger
-from autocommit.git import is_git_repo
+from autocommit.git import is_git_repo, try_pull
 
 def main():
+    logger.info("Starting autocommit...")
 
     logger = get_logger()
 
@@ -18,7 +19,13 @@ def main():
         Change repo_path in .../autocommit/config.yaml")
         return
 
-    logger.info("Starting autocommit...")
+    if (not try_pull): # if git pull fails
+        proceed = input("WARNING! Unable to pull from remote. Do you want to proceed without pulling? This could result in git conflicts! (y/n): ").strip().lower()
+        if proceed != 'y':
+            logging.info("Exit because 'git pull' didn't work.")
+            exit(1)
+        else:
+            logging.warning("Starting script without 'git pull'.")
 
     event_handler = NoteHandler()
     observer = Observer()

@@ -60,11 +60,32 @@ def try_push(filename: str) -> None:
     if push_retries == 0:
         logger.warning(f"Failed to push {commit_message} after multiple attempts. Check your network connection.")
 
+# return true if pull was successful. false otherwise
+def try_pull() -> bool:
+    # Attempt to push changes with retries
+    pull_retries = 3
+    while pull_retries > 0:
+        try:
+            logger.info(f"git pull")
+            pull_result = subprocess.run(['git', '-C', config.repo_path, 'pull'], check=True, text=True, stdout=subprocess.PIPE)
+            logger.info(f"git output: \n{pull_result.stdout}")
+            return True  # Exit if pull is successful
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Failed to pull: {e}, retrying...")
+            pull_retries -= 1
+            time.sleep(1)
+        except Exception as e:
+            logger.warning(f"Possible network issue while pulling: {e}")
+            pull_retries -= 1
+            time.sleep(1)
+    if pull_retries == 0:
+        logger.warning(f"Failed to pull after multiple attempts. Check your network connection.")
+        return False # pull failed
 
 def commit_and_push(filename: str, commit_message: str) -> None:
     try_add(filename)
     try_commit(filename, commit_message)
-    #try_push(filename)
+    try_push(filename)
 
 
 def git_rm(path: str) -> None:
