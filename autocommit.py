@@ -14,7 +14,8 @@ def main():
     config = Config.get_instance()
 
     if (not is_git_repo(config.repo_path)):
-        logger.error(f"{config.repo_path} is not a git repository!")
+        logger.error(f"{config.repo_path} is not a git repository! \
+        Change repo_path in .../autocommit/config.yaml")
         return
 
     logger.info("Starting autocommit...")

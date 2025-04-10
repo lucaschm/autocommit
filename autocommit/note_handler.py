@@ -20,12 +20,12 @@ class NoteHandler(FileSystemEventHandler):
 
     def dispatch(self, event):
         if ignore_path(event.src_path):
+            #logger.debug(f"{event.src_path} is part of an excluded dir and will be ignored.")
             return  # Ignore .git and venv files
         super().dispatch(event)
 
     def on_modified(self, event):
         if event.is_directory:
-            logger.info(f"Some directory was modified. This will be ignored.")
             return
         filename = event.src_path
         file_path = os.path.relpath(filename, config.repo_path)
@@ -68,6 +68,8 @@ class NoteHandler(FileSystemEventHandler):
             # Commit the addition of the new path
             filename = event.dest_path
             file_path = os.path.relpath(filename, config.repo_path)
+            logger.info(f"{file_path} was moved (or renamed)")
+
             if is_attachment_file(file_path):
                 git_rm(event.src_path) # stage the deletion of the old path
                 commit_and_push(filename, f"rename {event.src_path} to {event.dest_path} (autocommit)")
