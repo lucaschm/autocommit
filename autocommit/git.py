@@ -13,7 +13,7 @@ def try_add(filename: str) -> None:
     retries = 3
     while retries > 0:
         try:
-            logger.info(f"git add: {filename}")
+            logger.info(f'git -C "{config.repo_path}" add "{filename}"')
             subprocess.run(['git', '-C', config.repo_path, 'add', filename], check=True)
             break
         except subprocess.CalledProcessError as e:
@@ -28,7 +28,7 @@ def try_commit(filename: str, commit_message: str) -> None:
     commit_retries = 3
     while commit_retries > 0:
         try:
-            logger.info(f"git commit: {commit_message}")
+            logger.info(f'git -C "{config.repo_path}" commit -m "{commit_message}"')
             commit_result = subprocess.run(['git', '-C', config.repo_path, 'commit', '-m', commit_message], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{commit_result.stdout}")
             break  # Exit the loop if commit is successful
@@ -45,8 +45,14 @@ def try_push(filename: str) -> None:
     push_retries = 3
     while push_retries > 0:
         try:
-            logger.info(f"git push: ")
-            push_result = subprocess.run(['git', '-C', config.repo_path, 'push'], check=True, text=True, stdout=subprocess.PIPE)
+            logger.info(f'git -C "{config.repo_path}" push')
+            push_result = subprocess.run(
+                ['git', '-C', config.repo_path, 'push'],
+                check=True,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT  # Merge stderr into stdout
+            )
             logger.info(f"git output: \n{push_result.stdout}")
             break  # Exit the loop if push is successful
         except subprocess.CalledProcessError as e:
@@ -66,7 +72,7 @@ def try_pull() -> bool:
     pull_retries = 3
     while pull_retries > 0:
         try:
-            logger.info(f"git pull")
+            logger.info(f'git -C "{config.repo_path}" pull')
             pull_result = subprocess.run(['git', '-C', config.repo_path, 'pull'], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{pull_result.stdout}")
             return True  # Exit if pull is successful
@@ -92,7 +98,7 @@ def git_rm(path: str) -> None:
     retries = 3
     while retries > 0:
         try:
-            logger.info(f"git rm -r: {path}")
+            logger.info(f'git -C "{config.repo_path}" rm -r "{path}"')
             rm_result = subprocess.run(['git', '-C', config.repo_path, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{rm_result.stdout}")
             break
@@ -104,8 +110,8 @@ def git_rm(path: str) -> None:
         raise Exception(f"Failed to remove {path} after multiple attempts")
 
 def delete_directory(path: str, commit_message: str) -> None:
-    logger.info(f"delete_directory({path}, {commit_message})")
     try:
+        logger.info(f"delete_directory({path}, {commit_message})")
         rm_result = subprocess.run(['git', '-C', config.repo_path, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
         logger.info(f"git output: \n{rm_result.stdout}")
         diff_result = subprocess.run(['git', '-C', config.repo_path, 'diff', '--cached', '--exit-code'], capture_output=True)
