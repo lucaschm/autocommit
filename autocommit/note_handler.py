@@ -4,6 +4,7 @@ from watchdog.events import FileSystemEventHandler
 # built-in imports
 import os
 import time
+import subprocess # TODO: this can be removed when TODO 01 was solved
 
 # project imports
 from util import file_exists, ignore_path, is_attachment_file, is_main_file
@@ -79,7 +80,7 @@ class NoteHandler(FileSystemEventHandler):
                 git_rm(event.src_path) # stage the deletion of the old path
                 self._last_edited_file = file_path
                 self._time_since_last_edit = time.time()
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as e: # TODO 01: This exception must be caught in the method where it occurs
             logger.error(f"Error committing move: {e}")
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
