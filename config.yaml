@@ -1,0 +1,15 @@
+repo_path: "/path/to/git/repo"
+main_folders:
+  - "" # empty string for root directory of repository
+main_extensions:
+  - ".md"
+attachment_folders:
+  - "attachments/"
+attachment_extensions:
+  - ".png"
+  - ".jpg"
+  - ".svg"
+  - ".pdf"
+excluded_dirs:
+  - .git
+  - .obsidian
