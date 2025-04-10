@@ -20,7 +20,7 @@ def main():
         Change repo_path in .../autocommit/config.yaml")
         return
 
-    if (not try_pull): # if git pull fails
+    if (not try_pull()): # if git pull fails
         proceed = input("WARNING! Unable to pull from remote. Do you want to proceed without pulling? This could result in git conflicts! (y/n): ").strip().lower()
         if proceed != 'y':
             logging.info("Exit because 'git pull' didn't work.")
