@@ -54,6 +54,7 @@ class NoteHandler(FileSystemEventHandler):
         if is_attachment_file(file_path):
             commit_and_push(self._workspace, filename, f"create {filename} (autocommit)")
 
+    # TODO: weird behavior when an untracked main file gets deleted
     def on_deleted(self, event):
         if event.is_directory:
             delete_directory(event.src_path, f"delete directory {os.path.basename(event.src_path)}")
