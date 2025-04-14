@@ -18,10 +18,10 @@ config = Config.get_instance()
 class NoteHandler(FileSystemEventHandler):
     _last_edited_file = None
     _time_since_last_edit = None
-    _repo_path = None
+    _workspace = None
 
-    def __init__(self, repo_path):
-        self._repo_path = repo_path
+    def __init__(self, workspace):
+        self._workspace = workspace
 
     def dispatch(self, event):
         if ignore_path(event.src_path):
@@ -33,14 +33,14 @@ class NoteHandler(FileSystemEventHandler):
         if event.is_directory:
             return
         filename = event.src_path
-        file_path = os.path.relpath(filename, self._repo_path)
+        file_path = os.path.relpath(filename, self._workspace)
         logger.info(f"{file_path} was modified")
         
         if is_attachment_file(file_path):
-            commit_and_push(filename, f"add {filename} (autocommit)")
+            commit_and_push(self._workspace, filename, f"add {filename} (autocommit)")
         elif is_main_file(file_path):
             if self._last_edited_file and self._last_edited_file != file_path:
-                commit_and_push(self._last_edited_file, f"edit {self._last_edited_file} (autocommit)")
+                commit_and_push(self._workspace, self._last_edited_file, f"edit {self._last_edited_file} (autocommit)")
             self._last_edited_file = file_path
             self._time_since_last_edit = time.time()
 
@@ -49,19 +49,19 @@ class NoteHandler(FileSystemEventHandler):
             logger.info(f"Some directory was created. This will be ignored.")
             return
         filename = event.src_path
-        file_path = os.path.relpath(filename, self._repo_path)
+        file_path = os.path.relpath(filename, self._workspace)
         logger.info(f"{file_path} was created")
         if is_attachment_file(file_path):
-            commit_and_push(filename, f"create {filename} (autocommit)")
+            commit_and_push(self._workspace, filename, f"create {filename} (autocommit)")
 
     def on_deleted(self, event):
         if event.is_directory:
             delete_directory(event.src_path, f"delete directory {os.path.basename(event.src_path)}")
         else:
             filename = event.src_path
-            file_path = os.path.relpath(filename, self._repo_path)
+            file_path = os.path.relpath(filename, self._workspace)
             logger.info(f"{file_path} was deleted")
-            commit_and_push(filename, f"delete {os.path.basename(filename)} (autocommit)")
+            commit_and_push(self._workspace, filename, f"delete {os.path.basename(filename)} (autocommit)")
 
     def on_moved(self, event):
         try:
@@ -72,15 +72,15 @@ class NoteHandler(FileSystemEventHandler):
 
             # Commit the addition of the new path
             filename = event.dest_path
-            file_path = os.path.relpath(filename, self._repo_path)
+            file_path = os.path.relpath(filename, self._workspace)
             logger.info(f"{file_path} was moved (or renamed)")
 
             if is_attachment_file(file_path):
                 git_rm(event.src_path) # stage the deletion of the old path
-                commit_and_push(filename, f"rename {event.src_path} to {event.dest_path} (autocommit)")
+                commit_and_push(self._workspace, filename, f"rename {event.src_path} to {event.dest_path} (autocommit)")
             elif is_main_file(file_path):
                 if self._last_edited_file and self._last_edited_file != file_path and file_exists(self._last_edited_file):
-                    commit_and_push(self._last_edited_file, f"edit {self._last_edited_file} (autocommit)")
+                    commit_and_push(self._workspace, self._last_edited_file, f"edit {self._last_edited_file} (autocommit)")
                 git_rm(event.src_path) # stage the deletion of the old path
                 self._last_edited_file = file_path
                 self._time_since_last_edit = time.time()

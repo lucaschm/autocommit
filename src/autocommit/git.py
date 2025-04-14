@@ -5,32 +5,32 @@ import time
 
 # project imports
 from autocommit.logger import get_logger
-from autocommit.config import Config
 
 logger = get_logger()
-config = Config.get_instance()
 
-def try_add(filename: str) -> None:
+# TODO: remove config from this module. To do that it is required to pass full file paths instead of file basenames
+
+def try_add(workspace: str, filepath: str) -> None:
     retries = 3
     while retries > 0:
         try:
-            logger.info(f'git -C "{config.repo_path}" add "{filename}"')
-            subprocess.run(['git', '-C', config.repo_path, 'add', filename], check=True)
+            logger.info(f'git -C "{workspace}" add "{filepath}"')
+            subprocess.run(['git', '-C', workspace, 'add', filepath], check=True)
             break
         except subprocess.CalledProcessError as e:
-            logger.warning(f"Failed to add {filename}: {e}, retrying...")
+            logger.warning(f"Failed to add {filepath}: {e}, retrying...")
             retries -= 1
             time.sleep(1)
     if retries == 0:
-        raise Exception(f"Failed to add {filename} after multiple attempts")
+        raise Exception(f"Failed to add {filepath} after multiple attempts")
 
-def try_commit(filename: str, commit_message: str) -> None:
+def try_commit(workspace: str, commit_message: str) -> None:
     # Attempt to commit changes with retries
     commit_retries = 3
     while commit_retries > 0:
         try:
-            logger.info(f'git -C "{config.repo_path}" commit -m "{commit_message}"')
-            commit_result = subprocess.run(['git', '-C', config.repo_path, 'commit', '-m', commit_message], check=True, text=True, stdout=subprocess.PIPE)
+            logger.info(f'git -C "{workspace}" commit -m "{commit_message}"')
+            commit_result = subprocess.run(['git', '-C', workspace, 'commit', '-m', commit_message], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{commit_result.stdout}")
             break  # Exit the loop if commit is successful
         except subprocess.CalledProcessError as e:
@@ -41,14 +41,14 @@ def try_commit(filename: str, commit_message: str) -> None:
         logger.error(f"Failed to commit {commit_message} after multiple attempts")
         return
 
-def try_push(filename: str) -> None:
+def try_push(workspace: str) -> None:
     # Attempt to push changes with retries
     push_retries = 3
     while push_retries > 0:
         try:
-            logger.info(f'git -C "{config.repo_path}" push')
+            logger.info(f'git -C "{workspace}" push')
             push_result = subprocess.run(
-                ['git', '-C', config.repo_path, 'push'],
+                ['git', '-C', workspace, 'push'],
                 check=True,
                 text=True,
                 stdout=subprocess.PIPE,
@@ -68,13 +68,13 @@ def try_push(filename: str) -> None:
         logger.warning(f"Failed to push after multiple attempts. Check your network connection.")
 
 # return true if pull was successful. false otherwise
-def try_pull() -> bool:
+def try_pull(workspace: str) -> bool:
     # Attempt to push changes with retries
     pull_retries = 3
     while pull_retries > 0:
         try:
-            logger.info(f'git -C "{config.repo_path}" pull')
-            pull_result = subprocess.run(['git', '-C', config.repo_path, 'pull'], check=True, text=True, stdout=subprocess.PIPE)
+            logger.info(f'git -C "{workspace}" pull')
+            pull_result = subprocess.run(['git', '-C', workspace, 'pull'], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{pull_result.stdout}")
             return True  # Exit if pull is successful
         except subprocess.CalledProcessError as e:
@@ -89,10 +89,11 @@ def try_pull() -> bool:
         logger.warning(f"Failed to pull after multiple attempts. Check your network connection.")
         return False # pull failed
 
-def commit_and_push(filename: str, commit_message: str) -> None:
-    try_add(filename)
-    try_commit(filename, commit_message)
-    try_push(filename)
+def commit_and_push(workspace: str, filepath: str, commit_message: str) -> None:
+    filename = os.path.relpath(filepath, workspace)
+    try_add(workspace, filename)
+    try_commit(workspace, commit_message)
+    try_push(workspace)
 
 
 def git_rm(path: str) -> None:
