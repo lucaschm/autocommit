@@ -1,5 +1,6 @@
 # built-in imports
 import subprocess
+import os
 import time
 
 # project imports
@@ -143,3 +144,21 @@ def is_git_repo(path: str) -> bool:
         message = "Git is not installed on this system"
         logger.error(message)
         raise RuntimeError(message)
+
+# returns the root of the git repo of "path". 
+# "path" must be part of a git repo.
+def get_repo_root(path: str) -> str:
+    if (os.path.isfile(path)):
+        dirname, basename = os.path.split(path)
+    elif (os.path.isdir(path)):
+        dirname = path
+    else:
+        raise ValueError("path must refer to a valid file or directory!")
+    result = subprocess.run(['git', '-C', dirname, 'rev-parse', '--show-toplevel'], capture_output=True)
+    if ("not a git repository" in str(result.stderr)):
+        raise ValueError(f"'{path}' is not part of a git repository!")
+    if (result.returncode != 0): # if something went wrong
+        raise RuntimeError(f"Something went wrong while determining repo root of '{path}'")
+    
+    git_root = result.stdout.decode('utf-8').strip()
+    return git_root
