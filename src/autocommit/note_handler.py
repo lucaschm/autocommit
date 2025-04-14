@@ -18,6 +18,10 @@ config = Config.get_instance()
 class NoteHandler(FileSystemEventHandler):
     _last_edited_file = None
     _time_since_last_edit = None
+    _repo_path = None
+
+    def __init__(self, repo_path):
+        self._repo_path = repo_path
 
     def dispatch(self, event):
         if ignore_path(event.src_path):
@@ -29,7 +33,7 @@ class NoteHandler(FileSystemEventHandler):
         if event.is_directory:
             return
         filename = event.src_path
-        file_path = os.path.relpath(filename, config.repo_path)
+        file_path = os.path.relpath(filename, self._repo_path)
         logger.info(f"{file_path} was modified")
         
         if is_attachment_file(file_path):
@@ -45,7 +49,7 @@ class NoteHandler(FileSystemEventHandler):
             logger.info(f"Some directory was created. This will be ignored.")
             return
         filename = event.src_path
-        file_path = os.path.relpath(filename, config.repo_path)
+        file_path = os.path.relpath(filename, self._repo_path)
         logger.info(f"{file_path} was created")
         if is_attachment_file(file_path):
             commit_and_push(filename, f"create {filename} (autocommit)")
@@ -55,7 +59,7 @@ class NoteHandler(FileSystemEventHandler):
             delete_directory(event.src_path, f"delete directory {os.path.basename(event.src_path)}")
         else:
             filename = event.src_path
-            file_path = os.path.relpath(filename, config.repo_path)
+            file_path = os.path.relpath(filename, self._repo_path)
             logger.info(f"{file_path} was deleted")
             commit_and_push(filename, f"delete {os.path.basename(filename)} (autocommit)")
 
@@ -68,7 +72,7 @@ class NoteHandler(FileSystemEventHandler):
 
             # Commit the addition of the new path
             filename = event.dest_path
-            file_path = os.path.relpath(filename, config.repo_path)
+            file_path = os.path.relpath(filename, self._repo_path)
             logger.info(f"{file_path} was moved (or renamed)")
 
             if is_attachment_file(file_path):
