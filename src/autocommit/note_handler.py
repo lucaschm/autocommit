@@ -57,11 +57,18 @@ class NoteHandler(FileSystemEventHandler):
     def on_deleted(self, event):
         if event.is_directory:
             delete_directory(event.src_path, f"delete directory {os.path.basename(event.src_path)}")
-        else:
-            filename = event.src_path
-            file_path = os.path.relpath(filename, self._workspace)
-            logger.info(f"{file_path} was deleted")
-            commit_and_push(self._workspace, filename, f"delete {os.path.basename(filename)} (autocommit)")
+        
+        filename = event.src_path
+        file_path = os.path.relpath(filename, self._workspace)
+        logger.info(f"{file_path} was deleted")
+        
+        if is_attachment_file(file_path):
+            commit_and_push(self._workspace, filename, f"delete {file_path} (autocommit)")
+        elif is_main_file(file_path):
+            commit_and_push(self._workspace, filename, f"delete {file_path} (autocommit)")
+            if self._last_edited_file and self._last_edited_file == file_path:
+                self._last_edited_file = None
+                self._time_since_last_edit = None
 
     def on_moved(self, event):
         try:
