@@ -28,7 +28,7 @@ def main():
         else:
             logging.warning("Starting script without 'git pull'.")
 
-    event_handler = NoteHandler()
+    event_handler = NoteHandler(config.repo_path)
     observer = Observer()
     observer.schedule(event_handler, path=config.repo_path, recursive=True)
     observer.start()
