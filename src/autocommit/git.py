@@ -101,12 +101,12 @@ def commit_and_push(workspace: str, filepath: str, commit_message: str) -> None:
         logger.warning("Cancel commit_and_push().")
 
 
-def git_rm(path: str) -> bool:
+def git_rm(workspace: str, path: str) -> bool:
     retries = 3
     while retries > 0:
         try:
-            logger.info(f'git -C "{config.repo_path}" rm -r "{path}"')
-            rm_result = subprocess.run(['git', '-C', config.repo_path, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
+            logger.info(f'git -C "{workspace}" rm -r "{path}"')
+            rm_result = subprocess.run(['git', '-C', workspace, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
             logger.info(f"git output: \n{rm_result.stdout}")
             return True
         except subprocess.CalledProcessError as e:
@@ -117,12 +117,12 @@ def git_rm(path: str) -> bool:
         logger.error(f"Failed to remove {path} after multiple attempts")
         raise RuntimeError(f"Failed to remove {path} after multiple attempts")
 
-def delete_directory(path: str, commit_message: str) -> None:
+def delete_directory(workspace: str, path: str, commit_message: str) -> None:
     try:
         logger.info(f"delete_directory({path}, {commit_message})")
-        rm_result = subprocess.run(['git', '-C', config.repo_path, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
+        rm_result = subprocess.run(['git', '-C', workspace, 'rm', '-r', path], check=True, text=True, stdout=subprocess.PIPE)
         logger.info(f"git output: \n{rm_result.stdout}")
-        diff_result = subprocess.run(['git', '-C', config.repo_path, 'diff', '--cached', '--exit-code'], capture_output=True)
+        diff_result = subprocess.run(['git', '-C', workspace, 'diff', '--cached', '--exit-code'], capture_output=True)
         if diff_result.returncode == 1:  # There are changes to commit
             git_commit_and_push(path, commit_message)
             logger.info(f"Deleted directory: {path} with message: {commit_message}")

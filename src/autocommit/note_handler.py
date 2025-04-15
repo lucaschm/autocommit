@@ -9,11 +9,9 @@ import subprocess # TODO: this can be removed when TODO 01 was solved
 # project imports
 from autocommit.util import file_exists, ignore_path, is_attachment_file, is_main_file
 from autocommit.logger import get_logger
-from autocommit.config import Config
 from autocommit.git import commit_and_push, delete_directory, git_rm
 
 logger = get_logger()
-config = Config.get_instance()
 
 class NoteHandler(FileSystemEventHandler):
     _last_edited_file = None
@@ -57,7 +55,7 @@ class NoteHandler(FileSystemEventHandler):
     # TODO: weird behavior when an untracked main file gets deleted
     def on_deleted(self, event):
         if event.is_directory:
-            delete_directory(event.src_path, f"delete directory {os.path.basename(event.src_path)}")
+            delete_directory(_workspace, event.src_path, f"delete directory {os.path.basename(event.src_path)}")
         
         filename = event.src_path
         file_path = os.path.relpath(filename, self._workspace)
@@ -84,12 +82,12 @@ class NoteHandler(FileSystemEventHandler):
             logger.info(f"{file_path} was moved (or renamed)")
 
             if is_attachment_file(file_path):
-                git_rm(event.src_path) # stage the deletion of the old path
+                git_rm(_workspace, event.src_path) # stage the deletion of the old path
                 commit_and_push(self._workspace, filename, f"rename {event.src_path} to {event.dest_path} (autocommit)")
             elif is_main_file(file_path):
                 if self._last_edited_file and self._last_edited_file != file_path and file_exists(self._last_edited_file):
                     commit_and_push(self._workspace, self._last_edited_file, f"edit {self._last_edited_file} (autocommit)")
-                git_rm(event.src_path) # stage the deletion of the old path
+                git_rm(_workspace, event.src_path) # stage the deletion of the old path
                 self._last_edited_file = file_path
                 self._time_since_last_edit = time.time()
         except subprocess.CalledProcessError as e: # TODO 01: This exception must be caught in the method where it occurs
