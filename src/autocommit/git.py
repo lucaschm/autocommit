@@ -124,7 +124,8 @@ def delete_directory(workspace: str, path: str, commit_message: str) -> None:
         logger.info(f"git output: \n{rm_result.stdout}")
         diff_result = subprocess.run(['git', '-C', workspace, 'diff', '--cached', '--exit-code'], capture_output=True)
         if diff_result.returncode == 1:  # There are changes to commit
-            git_commit_and_push(path, commit_message)
+            try_commit(workspace, commit_message)
+            try_push(workspace)
             logger.info(f"Deleted directory: {path} with message: {commit_message}")
         else:
             logger.info(f"No changes to commit for: {path}")
