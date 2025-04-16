@@ -6,6 +6,7 @@ from autocommit.config import Config
 from autocommit.note_handler import NoteHandler
 from autocommit.logger import get_logger
 from autocommit.git import is_git_repo, try_pull
+from autocommit.exit_handler import ExitHandler
 
 def main():
 
@@ -32,6 +33,8 @@ def main():
     observer = Observer()
     observer.schedule(event_handler, path=config.repo_path, recursive=True)
     observer.start()
+
+    ExitHandler(config.repo_path, observer)
 
     logger.info("Observer started, waiting for events...")
 
