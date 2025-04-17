@@ -36,6 +36,9 @@ def try_commit(workspace: str, commit_message: str) -> bool:
             logger.info(f"git output: \n{commit_result.stdout}")
             return True  # Exit the loop if commit is successful
         except subprocess.CalledProcessError as e:
+            if ("nothing to commit" in e.stdout):
+                logger.warning("nothing to commit.")
+                return False
             logger.warning(f"Failed to commit {commit_message}: {e}, retrying...")
             commit_retries -= 1
             time.sleep(1)
