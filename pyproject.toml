@@ -1,7 +1,7 @@
 [project]
 name = "autocommit"
 version = "0.1.0"
-dependencies = ["observer", "pyyaml"]
+dependencies = ["observer", "pyyaml", "psutil"]
 
 [build-system]
 requires = ["hatchling >= 1.26"]
